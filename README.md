@@ -15,7 +15,7 @@ Each algorithm's clustering result is shown below. The images demonstrate how ea
   
   <div style="text-align: center; margin: 10px;">
     <h3>K-means++ (Euclidean)</h3>
-    <img src="result/a_star_k_means.png" alt="K-means Euclidean" height= "300" width="300">
+    <img src="result/k_means_plus_plus.png" alt="K-means Euclidean" height= "300" width="300">
   </div>
 
 
