@@ -7,7 +7,7 @@ import argparse
 
 #################### init maps ###################
 parser = argparse.ArgumentParser(description='Choose a clustering method')
-parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan'],
+parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan','autoclust_p'],
                     required=True, help='The clustering method to use')
 args = parser.parse_args()
 
@@ -51,16 +51,13 @@ elif methods=='k_means_plus_manhattan':
     # k__.showClusterAnalysisResults(points, clusterCenterTrace)
 
 elif methods=='dbscan':
-    from sklearn.cluster import DBSCAN
-    dbscan = DBSCAN(eps=5, min_samples=3)
+    import method.dbscan as dbscan
     x=np.array([[task["x"], task["y"]] for task in tasks])
-    labels = dbscan.fit_predict(x)
-    plt.scatter(x[:, 0], x[:, 1], c=labels, cmap='viridis')
-    plt.title('DBSCAN Clustering')
-    plt.xlabel('X Coordinate')
-    plt.ylabel('Y Coordinate')
-    plt.show()  
-
+    dbscan.dbscan_with_obstacles(tasks, obstacle_map)
+elif methods=='autoclust_p':
+    import method.autoclust_p as autoclust
+    autoclust.main(tasks, obstacle_map)
+       
 else:
     pass
 

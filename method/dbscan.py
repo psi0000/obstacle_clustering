@@ -1,93 +1,44 @@
-import math
-import random
-import pylab
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
 
-FLOAT_MAX = 1e100
+def is_obstacle(x, y, obstacle_map):
+    """장애물이 있는지 확인하는 함수"""
+    for obstacle in obstacle_map:
+        if obstacle['x'] <= x < obstacle['x'] + obstacle['width'] and \
+           obstacle['y'] <= y < obstacle['y'] + obstacle['height']:
+            return True
+    return False
 
-CORE_POINT_TYPE = -2
-BOUNDARY_POINT_TYPE = 1  # ALL NONE-NEGATIVE INTEGERS CAN BE BOUNDARY POINT TYPE
-OTHER_POINT_TYPE = -1
+def filter_points_with_obstacles(tasks, obstacle_map):
+    """장애물이 있는 영역에 있는 포인트를 필터링"""
+    filtered_tasks = []
+    for task in tasks:
+        if not is_obstacle(task['x'], task['y'], obstacle_map):
+            filtered_tasks.append(task)
+    return filtered_tasks
 
-class Point:
-    __slots__ = ["x", "y", "group", "pointType"]
-    def __init__(self, x=0, y=0, group=0, pointType=-1):
-        self.x, self.y, self.group, self.pointType = x, y, group, pointType
+def dbscan_with_obstacles(tasks, obstacle_map, eps=5, min_samples=3):
+    # 장애물에 있는 포인트를 제외하고 DBSCAN 실행
+    filtered_tasks = filter_points_with_obstacles(tasks, obstacle_map)
+    x = np.array([[task["x"], task["y"]] for task in filtered_tasks])
 
-def generatePoints(pointsNumber, radius):
-    points = [Point() for _ in range(4 * pointsNumber)]
-    originX = [-radius, -radius, radius, radius]
-    originY = [-radius, radius, -radius, radius]
-    count = 0
-    countCenter = 0
-    for index, point in enumerate(points):
-        count += 1
-        r = random.random() * radius
-        angle = random.random() * 2 * math.pi
-        point.x = r * math.cos(angle) + originX[countCenter]
-        point.y = r * math.sin(angle) + originY[countCenter]
-        point.group = index
-        if count >= pointsNumber * (countCenter + 1):
-            countCenter += 1
-    return points
+    # DBSCAN 알고리즘 적용
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = dbscan.fit_predict(x)
 
-def solveDistanceBetweenPoints(pointA, pointB):
-    return math.sqrt((pointA.x - pointB.x) ** 2 + (pointA.y - pointB.y) ** 2)
+    # 시각화
+    plt.figure(figsize=(9, 9))
+    plt.scatter(x[:, 0], x[:, 1], c=labels, cmap='viridis', label='Clusters')
+    
+    # 장애물 시각화
+    for obstacle in obstacle_map:
+        rect = plt.Rectangle((obstacle['x'], obstacle['y']), obstacle['width'], obstacle['height'],
+                             color='black', alpha=0.5, label='Obstacle')
+        plt.gca().add_patch(rect)
 
-def getPointsNumberWithinBoundary(points, eps):
-    pointsIndexGroupWithinBoundary = [[] for _ in range(len(points))]
-    for centerIndex, centerPoint in enumerate(points):
-        for index, customPoint in enumerate(points):
-            if centerIndex != index and solveDistanceBetweenPoints(centerPoint, customPoint) <= eps:
-                pointsIndexGroupWithinBoundary[centerIndex].append(index)
-    return pointsIndexGroupWithinBoundary
-
-def decidePointsType(points, pointsIndexGroupWithinBoundary, minPointsNumber):
-    for index, customPointsGroup in enumerate(pointsIndexGroupWithinBoundary):
-        if len(customPointsGroup) >= minPointsNumber:
-            points[index].pointType = CORE_POINT_TYPE
-    for index, customPointsGroup in enumerate(pointsIndexGroupWithinBoundary):
-        if len(customPointsGroup) < minPointsNumber:
-            for customPointIndex in customPointsGroup:
-                if points[customPointIndex].pointType == CORE_POINT_TYPE:
-                    points[index].pointType = customPointIndex
-
-def mergeGroup(points, fromIndex, toIndex):
-    for point in points:
-        if point.group == fromIndex:
-            point.group = toIndex
-
-def dbscan(points, pointsIndexGroupWithinBoundary, clusterCenterNumber):
-    countGroupsNumber = {index: 1 for index in range(len(points))}
-    for index, point in enumerate(points):
-        if point.pointType == CORE_POINT_TYPE:
-            for customPointIndex in pointsIndexGroupWithinBoundary[index]:
-                if points[customPointIndex].pointType == CORE_POINT_TYPE and points[customPointIndex].group != point.group:
-                    countGroupsNumber[point.group] += countGroupsNumber[points[customPointIndex].group]
-                    del countGroupsNumber[points[customPointIndex].group]
-                    mergeGroup(points, points[customPointIndex].group, point.group)
-        elif point.pointType >= 0:
-            corePointGroupIndex = points[point.pointType].group
-            countGroupsNumber[corePointGroupIndex] += countGroupsNumber[point.group]
-            del countGroupsNumber[point.group]
-            point.group = corePointGroupIndex
-    countGroupsNumber = sorted(countGroupsNumber.items(), key=lambda group: group[1], reverse=True)
-    count = 0
-    for key, _ in countGroupsNumber:
-        count += 1
-        for point in points:
-            if point.group == key:
-                point.group = -1 * count
-        if count >= clusterCenterNumber:
-            break
-
-def showClusterAnalysisResults(points):
-    colorStore = ['or', 'og', 'ob', 'oc', 'om', 'oy', 'ok']
-    pylab.figure(figsize=(9, 9), dpi=80)
-    for point in points:
-        color = ''
-        if point.group < 0:
-            color = colorStore[-1 * point.group - 1]
-        else:
-            color = colorStore[-1]
-        pylab.plot(point.x, point.y, color)
-    pylab.show()
+    plt.title('DBSCAN Clustering with Obstacles')
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    plt.grid(True)
+    plt.show()
