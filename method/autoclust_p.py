@@ -186,6 +186,7 @@ def visualize_grouped_points(points, edges, obstacles, title="Grouped Points"):
     # 연결된 포인트 그룹 찾기
     groups = find_connected_groups(edges, len(points))
 
+    print("group's ", len(groups))
     # 각 그룹에 대해 다른 색상 적용
     for group in groups:
         group_color = (random.random(), random.random(), random.random())  # 랜덤 색상 생성
@@ -220,7 +221,6 @@ def main(tasks,obstacle_map):
     # Phase 3: 이웃 확장 및 긴 엣지 제거 + 장애물 처리
     final_edges = phase3_extend_neighbors_and_remove_long_edges(points, valid_edges_phase2, threshold=10, obstacles=obstacles)
 
-    #print("Phase 3 후 최종 엣지:", final_edges)
 
     # 시각화
     # visualize_edges(points, valid_edges_phase1, obstacles, title="Phase 1 후 유효한 엣지")

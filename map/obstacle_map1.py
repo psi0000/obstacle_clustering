@@ -10,3 +10,10 @@ def obstacles():
          (20,5),(21,5),(22,5),(23,5),(24,5),(20,6),(20,7),(20,8),(20,9),(20,10),
          ]
     return obs
+
+def facilitators():
+    facilitators = [
+    {'x': 27, 'y': 32, 'influence': 14}  # 두 그룹을 연결하는 facilitator
+     ]
+    
+    return facilitators

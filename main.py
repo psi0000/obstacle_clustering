@@ -7,7 +7,7 @@ import argparse
 
 #################### init maps ###################
 parser = argparse.ArgumentParser(description='Choose a clustering method')
-parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan','autoclust_p'],
+parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan','autoclust_p','ascdt_p'],
                     required=True, help='The clustering method to use')
 args = parser.parse_args()
 
@@ -17,6 +17,7 @@ width, height = (25,25)
 tasks=map.create_task.create_tasks()
 tasks=map.create_task.recreate_task(tasks,obstacle_map)
 
+facilitators = map.obstacle_map1.facilitators()
 
 
 ######################### method select ###############
@@ -54,16 +55,22 @@ elif methods=='dbscan':
     import method.dbscan as dbscan
     x=np.array([[task["x"], task["y"]] for task in tasks])
     dbscan.dbscan_with_obstacles(tasks, obstacle_map)
+
 elif methods=='autoclust_p':
     import method.autoclust_p as autoclust
     autoclust.main(tasks, obstacle_map)
-       
+
+elif methods=='ascdt_p':
+    import method.ascdt_plus as ascdt
+    taskss = np.array([[task['x'], task['y']] for task in tasks])
+    ascdt_p = ascdt.ASCDT_PLUS(taskss, obstacle_map, facilitators)
+    ascdt_p.run_phase1_to_phase4()
 else:
     pass
 
 
 
-######################visualize####################3
+###################### visualize ####################3
 
 plt.figure(figsize=(10, 10))
 plt.xlim(0, 50)
