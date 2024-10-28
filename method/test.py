@@ -315,3 +315,4 @@ def main(tasks,obstacle_map):
 
     # 최종 하위 클러스터 시각화
     visualize_subclusters(points, subclusters, obstacles, title="AUTOCLUST++ with Distance-Based Subclusters")
+

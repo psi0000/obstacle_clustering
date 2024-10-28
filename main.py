@@ -7,7 +7,7 @@ import argparse
 
 #################### init maps ###################
 parser = argparse.ArgumentParser(description='Choose a clustering method')
-parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan','autoclust_p','ascdt_p'],
+parser.add_argument('--m', type=str, choices=['k_means_plus_manhattan','k_means_plus_euclidean', 'dbscan','autoclust_p','ascdt_p','test'],
                     required=True, help='The clustering method to use')
 args = parser.parse_args()
 
@@ -65,6 +65,9 @@ elif methods=='ascdt_p':
     taskss = np.array([[task['x'], task['y']] for task in tasks])
     ascdt_p = ascdt.ASCDT_PLUS(taskss, obstacle_map, facilitators)
     ascdt_p.run_phase1_to_phase4()
+elif methods=='test':
+    import method.test as test
+    test.main(tasks, obstacle_map)
 else:
     pass
 
